@@ -10,13 +10,13 @@ const FileStore = require('session-file-store')(session);
 const fileUpload = require('express-fileupload');
 
 //импорт вспомогательных ф-й
-/* const dbCheck = require('./db/dbCheck'); */
+const dbCheck = require('./db/dbCheck');
 
 // импорт роутов
 
  // вызов функции проверки соединения с базоый данных
-/* dbCheck();
- */
+dbCheck();
+
 app.use(express.static(path.resolve('public')));
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
