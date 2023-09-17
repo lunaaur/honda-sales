@@ -7,24 +7,30 @@ const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const fileUpload = require('express-fileupload');
+
 //импорт вспомогательных ф-й
-/* const dbCheck = require('./db/dbCheck'); */
+const dbCheck = require('./db/dbCheck');
 
 // импорт роутов
 
  // вызов функции проверки соединения с базоый данных
-/* dbCheck();
- */
+dbCheck();
+
 app.use(express.static(path.resolve('public')));
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use(fileUpload({
+  createParentPath: true
+}));
+
 const router = require('./routes/routes')
 
 const corsOptions ={
   origin:'http://localhost:3000', 
-  'Access-Control-Allow-Origin': '*',
+/*   'Access-Control-Allow-Origin': '*', */
   credentials:true,            //access-control-allow-credentials:true
   optionSuccessStatus:200
 }
@@ -47,6 +53,31 @@ app.use(session(sessionConfig));
 
 //роутеры
 app.use('/', router)
+
+app.post('/upload', (req, res) => {
+  console.log('here')
+  if (!req.files) {
+    return res.status(400).json({msg: 'No file uploaded'})
+  }
+
+  const file = req.files.file;
+  
+  if (!file) return res.json({error: 'Incorrect input name'});
+  const newFileName = encodeURI(Date.now() + '-' + file.name)
+  file.mv(`${__dirname}/../client/public/uploads/${newFileName}`, err => {
+    if (err) {
+      console.log(err)
+      return res.status(500).send(err)
+    }
+    console.log('file is uploaded')
+
+    res.json({
+      fileName: file.name,
+      filePath: `/uploads/${newFileName}`
+    })
+  })
+}
+)
 
 const PORT = process.env.PORT || 3100;
 app.listen(PORT, (err) => {
